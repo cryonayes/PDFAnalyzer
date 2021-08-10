@@ -90,7 +90,8 @@ class PDFAnalyzer(object):
                 else:
                     self.__total_count[key] = keyList[key]
 
-    def __add_labels(self, x, y):
+    @staticmethod
+    def __add_labels(x, y):
         plt.clf()
         for i in range(len(x)):
             plt.text(i, y[i], y[i])

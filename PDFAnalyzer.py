@@ -164,3 +164,9 @@ if __name__ == "__main__":
         ["Sanal Gerçeklik"]
     ]
 
+
+    ingilizceArama = PDFAnalyzer(keyword_list=englishList, directory="./PDFs", download_name="englishResults", use_regex=True)
+    ingilizceArama.plot_histogram(xlabel="Keywords", ylabel="Occurences", rotation=45, show=True)
+
+    dataJson = ingilizceArama.get_histogram_json(minify=False, j_indent=4)
+    print(dataJson)

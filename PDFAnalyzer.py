@@ -8,27 +8,28 @@ from typing import Dict, List
 
 
 class PDFAnalyzer(object):
-    def __init__(self, keyword_list: List, directory: str, as_words: bool, use_regex: bool):
+    def __init__(self, keyword_list: List, directory: str, download_name: str, use_regex: bool = True, as_words: bool = False):
         """
         Initialize PDFAnalyzer
             Parameters:
-                keyword_list (list): A list that contains keywords.
+                :param keyword_list: A list that contains keywords.
                  Similar keywords can be grouped, for example:
                     [["Artificial Intelligence", "AI"], ["Big Data"]]
                     "Artificial Intelligence" and "AI" will be searched separately and counted as the same
 
-                directory (str): Directory to search PDFs.
-                as_words (bool): If set to true, searches for keywords as words
+                :param directory: Directory to search PDFs.
+                :param as_words: If set to true, searches for keywords as words
         """
 
         # Dict[FileName, Dict[Keyword, Count]]
         self.__histogram: Dict[str, Dict[str, int]] = {}
-        self.__as_words: bool = as_words
+        self.__download_name: str = download_name
+        self.__use_regex: bool = use_regex
+        self.__as_words: bool = False if use_regex else as_words
         self.__directory: str = directory
         self.__found_pdfs: List = []
         # Total count of each keyword
         self.__total_count: Dict[str, int] = {}
-        self.__use_regex: bool = use_regex
 
         # If keyword is a word there will be spaces around it.
         if self.__as_words:
@@ -90,12 +91,13 @@ class PDFAnalyzer(object):
                     self.__total_count[key] = keyList[key]
 
     def __add_labels(self, x, y):
+        plt.clf()
         for i in range(len(x)):
             plt.text(i, y[i], y[i])
 
     def get_histogram(self):
         """
-        Returns raw histogram data.
+        :returns Returns raw histogram data.
         """
         return self.__histogram
 
@@ -103,23 +105,25 @@ class PDFAnalyzer(object):
         """
         Returns histogram data in JSON format.
             Parameters:
-                minify (bool): Minify switch for JSON dump.
-                j_indent (int): Identation size.
+                :param minify: Minify switch for JSON dump.
+                :param j_indent: Identation size.
         """
         if minify:
             return json.dumps(self.__histogram, separators=(',', ':'))
         return json.dumps(self.__histogram, indent=j_indent)
 
-    def plot_histogram(self, xlabel: str, ylabel: str, rotation: int = 90):
+    def plot_histogram(self, xlabel: str, ylabel: str, rotation: int = 90, show: bool = True):
         """
         Plots histogram data
             Parameters:
-                xlabel (str): Label for x-axis
-                ylabel (str): Label for y-axis
-                rotation (int): Rotation for labels
+                :param xlabel: Label for x-axis
+                :param ylabel: Label for y-axis
+                :param rotation: Rotation for labels
+                :param show: Show graph
         """
         x_data = self.__total_count.keys()
         y_data = list(self.__total_count.values())
+        plt.figure(figsize=(15, 8))
         self.__add_labels(x_data, y_data)
 
         plt.xticks(rotation=rotation)
@@ -127,11 +131,12 @@ class PDFAnalyzer(object):
         plt.ylabel(ylabel)
         plt.bar(*zip(*self.__total_count.items()))
         plt.tight_layout()
-        plt.show()
+        plt.savefig(self.__download_name, dpi=200)
+        if show:
+            plt.show()
 
 
 if __name__ == "__main__":
-
     englishList = [
         ["Artificial Intelligence", "AI"],
         ["Big Data", "Data Analytics"],
@@ -158,16 +163,3 @@ if __name__ == "__main__":
         ["Sanal Gerçeklik"]
     ]
 
-    """
-    Baştan sona doğru parametreler ve anlamları:
-        turkishList: aranacak listenin adı.
-        "./PDFs": PDF dosyalarının bulunduğu klasör.
-        as_words: Kelimeler aranırken başlarına ve sonlarına boşluk eklenmeli mi evet ise as_words=True hayır ise as_words=False
-                  Bu özellik use_regex kullanırken False olmalıdır.
-        use_regex: True ise kelimeler regex kurallarına göre aranır.
-    """
-    PDFAnalyzerEng = PDFAnalyzer(turkishList, "./PDFs", as_words=False, use_regex=True)
-    PDFAnalyzerEng.plot_histogram(xlabel="Keywords", ylabel="Occurences", rotation=45)
-
-    PDFAnalyzerEng = PDFAnalyzer(englishList, "./PDFs", as_words=False, use_regex=True)
-    PDFAnalyzerEng.plot_histogram(xlabel="Keywords", ylabel="Occurences", rotation=45)
